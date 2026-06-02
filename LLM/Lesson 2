@@ -38,3 +38,15 @@ Example of a good explanation:
 "Supervised learning is like a teacher grading homework. You show the model questions AND answers, and it learns the pattern."
 
 Now explain machine learning the same way:""" ))
+
+# Technique 4: JSON output
+print("\n=== 4. JSON OUTPUT ===")
+print(ask("You are a helpful assistant. You ALWAYS respond in valid JSON.",
+    """Explain what 'overfitting' is in machine learning.
+
+Respond in this exact JSON format:
+{
+  "explanation": "your explanation here",
+  "example": "your example here"
+}
+Do NOT include any text outside the JSON.""" ))
