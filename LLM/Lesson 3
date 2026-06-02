@@ -1,0 +1,37 @@
+import os
+import time
+import requests
+
+api_key = os.environ["GROQ_API_KEY"]
+url = "https://api.groq.com/openai/v1/chat/completions"
+headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+
+models = [
+    "llama-3.1-8b-instant",
+    "meta-llama/llama-4-scout-17b-16e-instruct",
+    "llama-3.3-70b-versatile",
+    "qwen/qwen3-32b"
+]
+
+prompt = "Explain the concept of 'attention' in transformers in 3 sentences."
+
+for model in models:
+    body = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.3,
+        "max_tokens": 200
+    }
+
+    start = time.time()
+    r = requests.post(url, json=body, headers=headers)
+    elapsed = time.time() - start
+    data = r.json()
+
+    answer = data["choices"][0]["message"]["content"]
+    tokens = data["usage"]["total_tokens"]
+
+    print(f"\n=== {model} ===")
+    print(f"Time: {elapsed:.2f}s | Tokens: {tokens} | Speed: {tokens/elapsed:.1f} tok/s")
+    print(f"Answer: {answer}")
+    print("-" * 50)
