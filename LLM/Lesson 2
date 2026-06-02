@@ -1,0 +1,40 @@
+import os
+import requests
+
+api_key = os.environ["GROQ_API_KEY"]
+url = "https://api.groq.com/openai/v1/chat/completions"
+headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+
+def ask(system, user, temp=0.3):
+    body = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
+        ],
+        "temperature": temp,
+        "max_tokens": 150
+    }
+    r = requests.post(url, json=body, headers=headers)
+    return r.json()["choices"][0]["message"]["content"]
+
+# Technique 1: Vague prompt
+print("=== 1. VAGUE ===")
+print(ask("You are a helpful assistant.", "Tell me about machine learning"))
+
+# Technique 2: Specific + structured
+print("\n=== 2. SPECIFIC ===")
+print(ask("You are a helpful assistant.",
+    "Explain machine learning in 3 bullet points. "
+    "Use simple language a beginner would understand. "
+    "Start each bullet with a technical term in bold."))
+
+# Technique 3: Role + format + example (few-shot)
+print("\n=== 3. FEW-SHOT ===")
+print(ask("You are a tutor who explains concepts using analogies.",
+    """Explain what machine learning is.
+
+Example of a good explanation:
+"Supervised learning is like a teacher grading homework. You show the model questions AND answers, and it learns the pattern."
+
+Now explain machine learning the same way:""" ))
