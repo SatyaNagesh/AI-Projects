@@ -1,0 +1,63 @@
+import os
+import requests
+
+api_key = os.environ["GROQ_API_KEY"]
+llm_url = "https://api.groq.com/openai/v1/chat/completions"
+headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+
+# Step 1: Our knowledge base (documents about AI topics)
+documents = [
+    "RAG stands for Retrieval-Augmented Generation. It retrieves relevant documents and uses them as context for an LLM.",
+    "An embedding is a vector representation of text that captures semantic meaning.",
+    "ChromaDB is an open-source vector database for storing and searching embeddings.",
+    "Cosine similarity measures how similar two vectors are by calculating the angle between them.",
+    "Prompt engineering is the practice of designing inputs to get desired outputs from LLMs.",
+    "Groq provides fast inference for open-source LLMs like Llama and Mixtral."
+]
+
+# Step 2: Simple keyword-based retrieval (no embeddings yet)
+def simple_retrieve(query, docs):
+    query_lower = query.lower()
+    results = []
+    for i, doc in enumerate(docs):
+        score = sum(1 for word in query_lower.split() if word in doc.lower())
+        if score > 0:
+            results.append((score, doc, i))
+    results.sort(reverse=True)
+    return [doc for _, doc, _ in results[:2]]
+
+# Step 3: RAG pipeline
+def rag_answer(query):
+    retrieved = simple_retrieve(query, documents)
+    context = "\n\n".join(retrieved)
+
+    prompt = f"""Answer the question using ONLY the context below.
+
+Context:
+{context}
+
+Question: {query}
+
+Answer:"""
+
+    body = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.2,
+        "max_tokens": 200
+    }
+    r = requests.post(llm_url, json=body, headers=headers)
+    return r.json()["choices"][0]["message"]["content"], retrieved
+
+# Test it
+queries = [
+    "What is RAG?",
+    "What is an embedding?",
+    "What is cosine similarity used for?"
+]
+
+for q in queries:
+    print(f"\n=== Question: {q} ===")
+    answer, context = rag_answer(q)
+    print(f"Retrieved: {context}")
+    print(f"Answer: {answer}")
